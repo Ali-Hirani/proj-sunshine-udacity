@@ -9,6 +9,9 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -35,13 +38,48 @@ public class ForecastFragment extends Fragment {
     public ForecastFragment() {
     }
 
+    // Fragment lifecycle method where the fragment is created
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        // Needed in order from this fragment to handle menu events
+        setHasOptionsMenu(true);
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+
+        // Inflate menu layout defined earlier
+        inflater.inflate(R.menu.forecastfragment, menu);
+    }
+
+
+
+    // Get notified when a menu item is selected
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item click here
+        // When menu item with id below is selected return true
+        int id = item.getItemId();
+        if (id == R.id.action_refresh) {
+
+            // Create new fetchweathertask and call execute on it
+            // App will crash due to SecurityException (missing internet permission)
+            FetchWeatherTask weatherTask = new FetchWeatherTask();
+            weatherTask.execute();
+
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    // This is where the UI gets initialized
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-
-
-
 
         // Sample data
         String[] forecastArray = {
