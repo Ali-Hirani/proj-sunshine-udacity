@@ -4,6 +4,7 @@ package me.ahirani.sunshineudacitytutorial;
  * Created by Ali on 25-Jan-2015.
  */
 
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -39,7 +40,6 @@ public class ForecastFragment extends Fragment {
     }
 
     // Fragment lifecycle method where the fragment is created
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,7 +68,9 @@ public class ForecastFragment extends Fragment {
             // Create new fetchweathertask and call execute on it
             // App will crash due to SecurityException (missing internet permission)
             FetchWeatherTask weatherTask = new FetchWeatherTask();
-            weatherTask.execute();
+
+            // Takes in first 3 digits of postal code
+            weatherTask.execute("L4T");
 
             return true;
         }
@@ -121,12 +123,17 @@ public class ForecastFragment extends Fragment {
         return rootView;
     }
 
-    public class FetchWeatherTask extends AsyncTask<Void, Void, Void> {
+    // Accepts a String parameter (postal code) and returns an array of forecasts
+    public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
 
         private final String LOG_TAG = FetchWeatherTask.class.getSimpleName();
 
+
+
         @Override
-        protected Void doInBackground(Void... params) {
+        // Pass in String... params, postal code is stored in 0th param
+        protected String[] doInBackground(String... params) {
+
             // These two need to be declared outside the try/catch
             // so that they can be closed in the finally block.
             HttpURLConnection urlConnection = null;
@@ -135,11 +142,45 @@ public class ForecastFragment extends Fragment {
             // Will contain the raw JSON response as a string.
             String forecastJsonStr = null;
 
+            // Various PARAMS
+            String format = "json";
+            String units = "metric";
+            int numDays = 7;
+
             try {
                 // Construct the URL for the OpenWeatherMap query
                 // Possible parameters are avaiable at OWM's forecast API page, at
                 // http://openweathermap.org/API#forecast
-                URL url = new URL("http://api.openweathermap.org/data/2.5/forecast/daily?q=Toronto&mode=json&units=metric&cnt=7");
+
+                // FORMAT: PARAM=INPUT
+                final String FORECAST_BASE_URL = "http://api.openweathermap.org/data/2.5/forecast/daily?";
+
+                    //ex: q=L4T,CA
+                    final String QUERY_PARAM = "q";
+
+                    //ex: mode=json
+                    final String FORMAT_PARAM = "mode";
+
+                    //ex: units=metric
+                    final String UNITS_PARAM = "units";
+
+                    //ex: cnt=2
+                    final String DAYS_PARAM = "cnt";
+
+                Uri builtUri = Uri.parse(FORECAST_BASE_URL).buildUpon()
+
+                        // Postal code stored in 0th cell of params array
+                        .appendQueryParameter(QUERY_PARAM, params[0])
+                        .appendQueryParameter(FORMAT_PARAM, format)
+                        .appendQueryParameter(UNITS_PARAM, units)
+                        .appendQueryParameter(DAYS_PARAM, Integer.toString(numDays)).build();
+
+                URL url = new URL(builtUri.toString());
+
+                // Verbose LOG Command to print built URI
+                Log.v(LOG_TAG, "Built URI " + builtUri.toString());
+
+                //URL url = new URL("http://api.openweathermap.org/data/2.5/forecast/daily?q=L4T,CA&mode=json&units=metric&cnt=7");
 
                 // Create the request to OpenWeatherMap, and open the connection
                 urlConnection = (HttpURLConnection) url.openConnection();
@@ -168,6 +209,10 @@ public class ForecastFragment extends Fragment {
                     return null;
                 }
                 forecastJsonStr = buffer.toString();
+
+                // Verify data is returned by adding a verbose log statement that prints the JSON string
+                Log.v(LOG_TAG, "Forecast JSON String: " + forecastJsonStr);
+
             } catch (IOException e) {
                 Log.e(LOG_TAG, "Error ", e);
                 // If the code didn't successfully get the weather data, there's no point in attemping
