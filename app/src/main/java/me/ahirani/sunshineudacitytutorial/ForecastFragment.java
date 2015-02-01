@@ -19,7 +19,6 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -49,11 +48,17 @@ public class ForecastFragment extends Fragment {
     }
 
     // Fragment lifecycle method where the fragment is created
+    // Called before onCreateView and does not rely on content view
+    // hierarchy being initialized at this point
     @Override
+
+    // Parameter: savedInstanceState means the fragment is being
+    // recreated from a previous saved state
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Needed in order from this fragment to handle menu events
+        // Needed in order for this fragment to handle menu events
+        // and therefore for the onCreateOptionsMenu to be called
         setHasOptionsMenu(true);
     }
 
@@ -88,6 +93,13 @@ public class ForecastFragment extends Fragment {
 
     // This is where the UI gets initialized
     @Override
+
+    // Parameters:
+    // inflater: The LayoutInflater object that can be used to inflate any views in the fragment
+    // container: non-null, parent view that the fragment's UI should be attached to
+    // savedInstanceState: non-null, fragment is being reconstructed from a previous saved state
+
+    //Returns: Return the View for the fragment's UI
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Sample data
@@ -101,7 +113,10 @@ public class ForecastFragment extends Fragment {
                 "Sun - Sunny - 80/68"
         };
 
+        // Instantiate an ArrayList
         List<String> weekForecast = new ArrayList<String>(
+
+                // Arrays.asList() converts an array to a List object
                 Arrays.asList(forecastArray));
 
 
@@ -126,6 +141,8 @@ public class ForecastFragment extends Fragment {
         // Get a reference to ListView and attach adapter
         ListView listView = (ListView) rootView.findViewById(R.id.listview_forecast);
         listView.setAdapter(mForecastAdapter);
+
+        // This method is used to wire up behaviour on a list item when it is clicked
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
@@ -146,11 +163,15 @@ public class ForecastFragment extends Fragment {
 
                 */
 
-                // Launch an explicity intent to the detail activity class
+                // Launch an explicit intent to the detail activity class
                 Intent detailIntent = new Intent(getActivity(), DetailActivity.class)
+
+                        //EXTRA_TEXT is a constant char sequence associated with the Intent
                         .putExtra(Intent.EXTRA_TEXT, forecast);
 
+                // Execute detailIntent
                 startActivity(detailIntent);
+
 
 
             }
