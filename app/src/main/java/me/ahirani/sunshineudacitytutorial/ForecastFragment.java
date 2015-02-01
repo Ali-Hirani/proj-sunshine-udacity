@@ -5,9 +5,11 @@ package me.ahirani.sunshineudacitytutorial;
  */
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -78,14 +80,7 @@ public class ForecastFragment extends Fragment {
         // When menu item with id below is selected return true
         int id = item.getItemId();
         if (id == R.id.action_refresh) {
-
-            // Create new fetchweathertask and call execute on it
-            // App will crash due to SecurityException (missing internet permission)
-            FetchWeatherTask weatherTask = new FetchWeatherTask();
-
-            // Takes in first 3 digits of postal code
-            weatherTask.execute("L4T");
-
+            updateWeather();
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -134,7 +129,7 @@ public class ForecastFragment extends Fragment {
                 R.id.list_item_forecast_textview,
 
                 // list of data
-                weekForecast);
+                new ArrayList<String>());
 
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
@@ -179,6 +174,25 @@ public class ForecastFragment extends Fragment {
 
         return rootView;
     }
+
+    private void updateWeather() {
+
+        // Create new fetchweathertask and call execute on it
+        FetchWeatherTask weatherTask = new FetchWeatherTask();
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String location = prefs.getString(getString(R.string.pref_location_key),
+                getString(R.string.pref_location_default));
+        // Takes in first 3 digits of postal code
+        weatherTask.execute(location);
+
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        updateWeather();
+    }
+
 
     // Accepts a String parameter (postal code) and returns an array of forecasts
     public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
