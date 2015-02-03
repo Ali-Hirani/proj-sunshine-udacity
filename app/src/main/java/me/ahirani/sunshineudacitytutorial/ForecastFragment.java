@@ -34,9 +34,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -97,23 +95,6 @@ public class ForecastFragment extends Fragment {
     //Returns: Return the View for the fragment's UI
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Sample data
-        final String[] forecastArray = {
-                "Today - Sunny - 88/63",
-                "Tomorrow - Foggy - 70/40",
-                "Weds - Cloudy - 72/63",
-                "Thurs -Asteroids - 75/65",
-                "Fri - Foggy - 70/46",
-                "Sat - SNOW STORM WARNING - 60/51",
-                "Sun - Sunny - 80/68"
-        };
-
-        // Instantiate an ArrayList
-        List<String> weekForecast = new ArrayList<String>(
-
-                // Arrays.asList() converts an array to a List object
-                Arrays.asList(forecastArray));
-
 
         // ArrayAdapter will take data from a source and populate the ListView it's attached to
         mForecastAdapter = new ArrayAdapter<String>(
@@ -189,6 +170,8 @@ public class ForecastFragment extends Fragment {
 
     @Override
     public void onStart() {
+
+        // Refresh will occur whenever fragment starts
         super.onStart();
         updateWeather();
     }
@@ -214,6 +197,25 @@ public class ForecastFragment extends Fragment {
          * Prepare the weather high/lows for presentation.
          */
         private String formatHighLows(double high, double low) {
+
+            // Data is fetched in Celsius by default
+
+            SharedPreferences sharedPrefs =
+                    PreferenceManager.getDefaultSharedPreferences(getActivity());
+            String unitType = sharedPrefs.getString(
+                    getString(R.string.pref_units_key),
+                    getString(R.string.pref_units_metric));
+
+            // If preferences are set to imperial units
+            if (unitType.equals(getString(R.string.pref_units_imperial))) {
+                high = (high * 1.8) + 32;
+                low = (low * 1.8) + 32;
+
+              // If units are not metric nor imperial
+            } else if (!unitType.equals(getString(R.string.pref_units_metric))) {
+                Log.d(LOG_TAG, "Unit type not found: " + unitType);
+            }
+
             // For presentation, assume the user doesn't care about tenths of a degree.
             long roundedHigh = Math.round(high);
             long roundedLow = Math.round(low);
